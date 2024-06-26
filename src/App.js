@@ -3,7 +3,7 @@ import PdfUploader from "./components/PdfUploader";
 import ChatComponent from "./components/ChatComponent";
 import RenderQA from "./components/RenderQA";
 import { Layout, Typography } from "antd";
-
+import VoiceInterface from "./components/VoiceInterface";
 
 const chatComponentStyle = {
   position: "fixed",

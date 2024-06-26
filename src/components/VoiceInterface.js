@@ -1,28 +1,16 @@
-import React, { useState, useEffect } from "react"; // Import useState
-import axios from "axios";
-import { Button, Input } from "antd";
+import { Button } from "antd";
 import { AudioOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import Speech from "speak-tts";
 
-const { Search } = Input;
 
-const DOMAIN = "http://localhost:5001";
-
-const searchContainer = {
-  display: "flex",
-  justifyContent: "center",
-};
-
-const ChatComponent = (props) => {
-  const { handleResp, isLoading, setIsLoading } = props;
-  // Define a state variable to keep track of the search value
-  const [searchValue, setSearchValue] = useState("");
-  const [isChatModeOn, setIsChatModeOn] = useState(false);
+const VoiceInterface = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [speech, setSpeech] = useState();
+
 
   // speech recognation
   const {
@@ -32,6 +20,11 @@ const ChatComponent = (props) => {
     browserSupportsSpeechRecognition,
     isMicrophoneAvailable,
   } = useSpeechRecognition();
+
+
+  console.log("browser support:", browserSupportsSpeechRecognition);
+  console.log("microphone available:", isMicrophoneAvailable);
+
 
   useEffect(() => {
     const speech = new Speech();
@@ -54,12 +47,14 @@ const ChatComponent = (props) => {
       });
   }, []);
 
+
   useEffect(() => {
     if (!listening && !!transcript) {
-      (async () => await onSearch(transcript))();
+      console.log(transcript);
       setIsRecording(false);
     }
   }, [listening, transcript]);
+
 
   const talk = (what2say) => {
     speech
@@ -96,21 +91,18 @@ const ChatComponent = (props) => {
       });
   };
 
+
   const userStartConvo = () => {
     SpeechRecognition.startListening();
     setIsRecording(true);
     resetEverything();
   };
 
+
   const resetEverything = () => {
     resetTranscript();
   };
 
-  const chatModeClickHandler = () => {
-    setIsChatModeOn(!isChatModeOn);
-    setIsRecording(false);
-    SpeechRecognition.stopListening();
-  };
 
   const recordingClickHandler = () => {
     if (isRecording) {
@@ -122,71 +114,22 @@ const ChatComponent = (props) => {
     }
   };
 
-  const onSearch = async (question) => {
-    // Clear the search input
-    setSearchValue("");
-    setIsLoading(true);
-
-    try {
-      const response = await axios.get(`${DOMAIN}/chat`, {
-        params: {
-          question,
-        },
-      });
-      handleResp(question, response.data);
-      if (isChatModeOn) {
-        talk(response.data);
-      }
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      handleResp(question, error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    // Update searchValue state when the user types in the input box
-    setSearchValue(e.target.value);
-  };
 
   return (
-    <div style={searchContainer}>
-      {!isChatModeOn && (
-        <Search
-          placeholder="input search text"
-          enterButton="Ask"
-          size="large"
-          onSearch={onSearch}
-          loading={isLoading}
-          value={searchValue} // Control the value
-          onChange={handleChange} // Update the value when changed
-        />
-      )}
+    <div style={{ position: "fixed", bottom: 100 }}>
       <Button
         type="primary"
+        icon={<AudioOutlined />}
         size="large"
-        danger={isChatModeOn}
-        onClick={chatModeClickHandler}
+        danger={isRecording}
+        onClick={recordingClickHandler}
         style={{ marginLeft: "5px" }}
       >
-        Chat Mode: {isChatModeOn ? "On" : "Off"}
+        {isRecording ? "Recording..." : "Click to record"}
       </Button>
-      {isChatModeOn && (
-        <Button
-          type="primary"
-          icon={<AudioOutlined />}
-          size="large"
-          danger={isRecording}
-          onClick={recordingClickHandler}
-          style={{ marginLeft: "5px" }}
-        >
-          {isRecording ? "Recording..." : "Click to record"}
-        </Button>
-      )}
     </div>
   );
 };
 
-export default ChatComponent;
 
+export default VoiceInterface;
